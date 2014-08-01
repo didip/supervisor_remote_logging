@@ -1,0 +1,7 @@
+__pycache__
+*.pyc
+/*.egg
+/build
+/dist
+/supervisor_remote_logging.egg-info
+/htmlcov
