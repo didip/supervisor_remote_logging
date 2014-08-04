@@ -42,13 +42,38 @@ RESERVED_ATTRS = (
 RESERVED_ATTR_HASH = dict(zip(RESERVED_ATTRS, RESERVED_ATTRS))
 
 
-class JsonFormatter(logging.Formatter):
+class FormatterMixin(object):
+    HOSTNAME = re.sub(r':\d+$', '', os.environ.get('SITE_DOMAIN', socket.gethostname()))
+    DEFAULT_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S%z'
+    DEFAULT_MESSAGE_FORMAT = '%(asctime)s %(hostname)s %(name)s[%(process)d]: %(message)s'
+
+
+    def message_format(self):
+        """
+        Use user defined message format via
+        os.environ['MESSAGE_FORMAT'] or
+        DEFAULT_MESSAGE_FORMAT as default.
+        """
+        fmt = os.environ.get('MESSAGE_FORMAT', self.DEFAULT_MESSAGE_FORMAT)
+
+        return fmt.replace('%(hostname)s', self.HOSTNAME)  # Accepts hostname in the form of %(hostname)s
+
+
+    def date_format(self):
+        """
+        Use user defined message format via
+        os.environ['DATE_FORMAT'] or
+        DEFAULT_DATE_FORMAT as default.
+        """
+        return os.environ.get('DATE_FORMAT', self.DEFAULT_DATE_FORMAT)
+
+
+class JsonFormatter(logging.Formatter, FormatterMixin):
     """
     A custom formatter to format logging records as json strings.
     extra values will be formatted as str() if nor supported by
     json default encoder
     """
-
     def __init__(self, *args, **kwargs):
         """
         :param json_default: a function for encoding non-standard objects
@@ -57,6 +82,10 @@ class JsonFormatter(logging.Formatter):
         """
         self.json_default = kwargs.pop("json_default", None)
         self.json_encoder = kwargs.pop("json_encoder", None)
+
+        kwargs['fmt'] = self.message_format()
+        kwargs['datefmt'] = self.date_format()
+
         super(JsonFormatter, self).__init__(*args, **kwargs)
 
         if not self.json_encoder and not self.json_default:
@@ -122,15 +151,10 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(log_record, default=self.json_default, cls=self.json_encoder)
 
 
-class SyslogFormatter(logging.Formatter):
+class SyslogFormatter(logging.Formatter, FormatterMixin):
     """
     A formatter for the Pallet environment.
     """
-
-    HOSTNAME = re.sub(r':\d+$', '', os.environ.get('SITE_DOMAIN', socket.gethostname()))
-    DEFAULT_DATE_FORMAT = '%Y-%m-%dT%H:%M:%S%z'
-    DEFAULT_MESSAGE_FORMAT = '%(asctime)s %(hostname)s %(name)s[%(process)d]: %(message)s'
-
     def __init__(self):
         super(SyslogFormatter, self).__init__(fmt=self.message_format(), datefmt=self.date_format())
 
@@ -138,22 +162,6 @@ class SyslogFormatter(logging.Formatter):
     def format(self, record):
         message = super(SyslogFormatter, self).format(record)
         return message.replace('\n', ' ') + '\n'
-
-
-    def message_format(self):
-        """
-        Use user defined message format via
-        os.environ['SYSLOG_MESSAGE_FORMAT'] or
-        DEFAULT_MESSAGE_FORMAT as default.
-        """
-
-        fmt = os.environ.get('SYSLOG_MESSAGE_FORMAT', self.DEFAULT_MESSAGE_FORMAT)
-
-        return fmt.replace('%(hostname)s', self.HOSTNAME)  # Accepts hostname in the form of %(hostname)s
-
-
-    def date_format(self):
-        return os.environ.get('SYSLOG_DATE_FORMAT', self.DEFAULT_DATE_FORMAT)
 
 
 class SysLogHandler(logging.handlers.SysLogHandler):
