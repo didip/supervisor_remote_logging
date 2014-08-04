@@ -13,11 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Test tcp_json.
-"""
-
 import logging
+import json
 from unittest import TestCase
 from supervisor_remote_logging import JsonFormatter, new_tcp_json_handler
 
@@ -34,7 +31,11 @@ class TcpjsonTestCase(TestCase):
             exc_info=None,
         )
         formatted = JsonFormatter().format(record)
-        self.assertEqual(formatted, '{"message": "Test message"}')
+        deserialized = json.loads(formatted)
+        self.assertEqual(deserialized['name'], record.name)
+        self.assertEqual(deserialized['message'], record.msg)
+        self.assertTrue(deserialized['asctime'] != None)
+        self.assertTrue(deserialized['process'] != None)
 
 
     def test_default_values(self):

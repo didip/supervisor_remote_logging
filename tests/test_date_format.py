@@ -41,7 +41,7 @@ class SupervisorLoggingDateFormatTestCase(TestCase):
         Test custom date format.
         """
         date = datetime.datetime(2000, 1, 1, 1, 0, 0)
-        os.environ['SYSLOG_DATE_FORMAT'] = '%b %d %H:%M:%S'
+        os.environ['DATE_FORMAT'] = '%b %d %H:%M:%S'
         date_format = SyslogFormatter().date_format()
         self.assertEqual(date.strftime(date_format), 'Jan 01 01:00:00')
-        os.environ['SYSLOG_DATE_FORMAT'] = SyslogFormatter.DEFAULT_DATE_FORMAT
+        os.environ['DATE_FORMAT'] = SyslogFormatter.DEFAULT_DATE_FORMAT

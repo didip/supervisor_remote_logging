@@ -47,9 +47,15 @@ def strip_volatile(message):
 
 
 class IntegrationTestCase(TestCase):
-    maxDiff = None
+    def setUp(self):
+        self.old_env = os.environ.copy()
 
-    def test_logging(self):
+
+    def tearDown(self):
+        os.environ = self.old_env
+
+
+    def test_syslog_logging(self):
         """
         Test logging.
         """
@@ -68,20 +74,20 @@ class IntegrationTestCase(TestCase):
         try:
             threading.Thread(target=syslog.serve_forever).start()
 
-            env = os.environ.copy()
-            env['SYSLOG_SERVER'] = syslog.server_address[0]
-            env['SYSLOG_PORT'] = str(syslog.server_address[1])
-            env['SYSLOG_PROTO'] = 'udp'
+            os.environ['SYSLOG_SERVER'] = syslog.server_address[0]
+            os.environ['SYSLOG_PORT'] = str(syslog.server_address[1])
+            os.environ['SYSLOG_PROTO'] = 'udp'
 
             mydir = os.path.dirname(__file__)
 
             supervisor = subprocess.Popen(
                 ['supervisord', '-c', os.path.join(mydir, 'supervisord.conf')],
-                env=env,
+                env=os.environ,
             )
             try:
-
                 sleep(3)
+
+                print subprocess.check_output(['supervisorctl', 'status'])
 
                 pid = subprocess.check_output(
                     ['supervisorctl', 'pid', 'messages']
@@ -89,12 +95,11 @@ class IntegrationTestCase(TestCase):
 
                 sleep(8)
 
+                print messages
+
                 self.assertEqual(
                     list(map(strip_volatile, messages)),
-                    ['<14>DATE HOST messages[{pid}]: Test {i} \n\x00'.format(
-                        pid=pid,
-                        i=i)
-                     for i in range(4)]
+                    ['<14>DATE HOST messages[{pid}]: Test {i} \n\x00'.format(pid=pid, i=i) for i in range(4)]
                 )
             finally:
                 supervisor.terminate()
