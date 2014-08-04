@@ -47,5 +47,4 @@ with open('requirements.txt') as requirements:
         install_requires=requirements.read().splitlines(),
 
         test_suite='tests',
-        tests_require=requirements.read().splitlines(),
     )
