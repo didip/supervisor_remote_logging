@@ -19,14 +19,6 @@ The Syslog instance to send the events to is configured with the environment var
 * `SYSLOG_PORT`
 * `SYSLOG_PROTO`
 
-Add the plugin as an event listener:
-
-```
-[eventlistener:logging]
-command = supervisor_logging
-events = PROCESS_LOG
-```
-
 TCP JSON
 --------
 
