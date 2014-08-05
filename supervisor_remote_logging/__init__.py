@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2014  Didip Kerabat
+# Copyright 2014  Infoxchange Australia
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#
+# Didip's Modifications to the original codebase:
+#
+# * Syslog Formatter reads: MESSAGE_FORMAT and DATE_FORMAT environment variables.
+# * Added JSON Formatter.
+# * Able to choose different type of formatter via: SUPERVISOR_LOG_TYPE environment variable.
+# * Changed date format to ISO 8601
+#
 from __future__ import print_function
 
 import logging
